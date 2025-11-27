@@ -1,0 +1,4 @@
+spotipy
+ytmusicapi
+inquirer
+python-dotenv
