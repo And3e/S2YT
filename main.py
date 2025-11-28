@@ -3,22 +3,45 @@ from migrator import MusicMigrator
 from dotenv import load_dotenv
 import os
 import ytmusicapi
+import inquirer
 
 load_dotenv(override=True)
 
 def main():
+    print("\n" + "-"*50)
+    
+    questions = [
+        inquirer.List('clear_cache',
+                      message="Startup: Do you want to clear old cache/login files?",
+                      choices=['No (Keep my current login)', 'Yes (Clear cache - fixes 403 errors)'],
+                      default='No (Keep my current login)'
+                      ),
+    ]
+    answer = inquirer.prompt(questions)
+
+    if answer and answer['clear_cache'].startswith('Yes'):
+        print("🧹 Cleaning up files...")
+        
+        if os.path.exists(".cache"):
+            try:
+                os.remove(".cache")
+                print("   -> Deleted .cache file")
+            except Exception as e:
+                print(f"   -> Error deleting .cache: {e}")
+        
+        if os.path.exists("__pycache__"):
+            try:
+                shutil.rmtree("__pycache__")
+                print("   -> Deleted __pycache__ folder")
+            except Exception as e:
+                print(f"   -> Error deleting folder: {e}")
+        
+        print("✅ Cache cleared.\n")
+    else:
+        print("⏩ Skipping cache clear.\n")
+
     SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
     SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-
-    if os.path.exists(".cache"):
-        os.remove(".cache")
-    
-    if os.path.exists("__pycache__"):
-        try:
-            shutil.rmtree("__pycache__")
-            print(f"Deleted {"__pycache__"} and all its contents.")
-        except Exception as e:
-            print(f"Error deleting folder: {e}")
 
     app = MusicMigrator(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
     

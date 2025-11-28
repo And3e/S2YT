@@ -2,3 +2,4 @@ spotipy
 ytmusicapi
 inquirer
 python-dotenv
+tqdm
