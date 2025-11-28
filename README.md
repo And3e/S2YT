@@ -22,11 +22,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-### Part 1: Youtube configuration
-
-Follow the on-screen instructions when running the script to generate `ytmusic_headers.json`.
-
-### Part 2: Spotify App Setup
+### Part 1: Spotify App Setup
 
 You need a Client ID and Secret to access your Spotify Library.
 
@@ -46,7 +42,7 @@ You need a Client ID and Secret to access your Spotify Library.
 6.  Keep this tab open, you will need the **Client ID** and **Client Secret** for the next step.
 7.  **IMPORTANT:** Go to **User Management** in the dashboard settings and add your name/email to the list of allowed users, otherwise you will get a 403 error.
 
-### Part 3: Environment Variables
+### Part 2: Environment Variables
 
 1.  Create a new file in the project folder named `.env` (just `.env`, no name before the dot).
 2.  Open it with a text editor and paste the following, replacing the values with your actual Spotify credentials:
@@ -57,6 +53,10 @@ You need a Client ID and Secret to access your Spotify Library.
 SPOTIFY_CLIENT_ID=<your_pasted_client_id_here>
 SPOTIFY_CLIENT_SECRET=<your_pasted_client_secret_here>
 ```
+
+### Part 3: Youtube configuration
+
+Follow the on-screen instructions when running the script to generate `ytmusic_headers.json`.
 
 ---
 
