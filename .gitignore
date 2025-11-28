@@ -1,5 +1,5 @@
 .cache
-ytmusic_headers.json
+*ytmusic_headers*.json
 .env
 __pycache__/
 .vscode/

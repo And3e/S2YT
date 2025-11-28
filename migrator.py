@@ -1,3 +1,4 @@
+from time import time
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from ytmusicapi import YTMusic
@@ -5,12 +6,32 @@ import inquirer
 
 class MusicMigrator:
     def __init__(self, spotify_client_id, spotify_client_secret):
+        print("\n" + "="*50)
+        print("⏳  Initiating Spotify Authentication...")
+        print("👀  Watch your browser! A window will open shortly.")
+        print("⚠️   IMPORTANT WARNING:")
+        print("    -> Ensure you log in with the CORRECT Spotify account.")
+        print("    -> It must be the account registered in your Developer Dashboard.")
+        print("="*50 + "\n")
+        
+        # Add a small delay so the user has time to read the warning
+        time.sleep(2)
+
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
             client_id=spotify_client_id,
             client_secret=spotify_client_secret,
             redirect_uri="http://127.0.0.1:8888/callback",
-            scope="playlist-read-private playlist-read-collaborative"
+            scope="playlist-read-private playlist-read-collaborative",
+            show_dialog=True
         ))
+        
+        try:
+            print("... Waiting for user login ...")
+            user = self.sp.me()
+            print(f"✅  Logged in as: {user['display_name']} ({user['id']})")
+        except Exception as e:
+            print("❌  Authentication failed or cancelled.")
+            raise e
         
         self.yt = None
 
