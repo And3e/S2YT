@@ -165,6 +165,8 @@ class MusicMigrator:
 
             # 3. Find Video IDs
             video_ids = []
+            missing_songs = []
+
             print(f"   🔍 Searching for {len(tracks)} tracks...")
             
             for item in tqdm(tracks, desc="   Processing", unit="song"):
@@ -209,6 +211,7 @@ class MusicMigrator:
                                 tqdm.write(f"      ✅ Found via fallback!")
                             else:
                                 tqdm.write(f"      ❌ Strictly not found: {query}")
+                                missing_songs.append(f"{track['artists'][0]['name']} - {track['name']}")
                                 found = True
                             
                     except Exception as e:
@@ -223,6 +226,7 @@ class MusicMigrator:
                             attempts += 1
                         else:
                             tqdm.write(f"      ❌ Error searching '{query}': {e}")
+                            missing_songs.append(f"{track['artists'][0]['name']} - {track['name']}")
                             break
 
             # 4. Remove internal duplicates
@@ -246,4 +250,17 @@ class MusicMigrator:
                 except Exception as e:
                     print(f"   ❌ Error adding tracks: {e}")
             
+            print("------------------------------------------------")
+
+            # --- 6. Final Report for this Playlist ---
+            if missing_songs:
+                print("\n" + "!"*50)
+                print(f"⚠️  MISSING SONGS REPORT for '{playlist['name']}':")
+                print(f"   The following {len(missing_songs)} songs could not be found on YouTube Music:")
+                for song in missing_songs:
+                    print(f"   • {song}")
+                print("!"*50 + "\n")
+            else:
+                print(f"\n✨ Perfect! All {len(video_ids)} tracks were found and migrated.\n")
+
             print("------------------------------------------------")
