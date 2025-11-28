@@ -261,6 +261,6 @@ class MusicMigrator:
                     print(f"   • {song}")
                 print("!"*50 + "\n")
             else:
-                print(f"\n✨ Perfect! All {len(video_ids)} tracks were found and migrated.\n")
+                print(f"\nAll {len(video_ids)} tracks were found and migrated.\n")
 
             print("------------------------------------------------")
