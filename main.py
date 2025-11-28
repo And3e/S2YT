@@ -57,7 +57,7 @@ def main():
         print("    4. In Dev Tools, right-click the request named 'create' (POST)")
         print("    5. Select: Copy -> Copy Request Headers")
         print("-" * 60)
-        print("👇  PASTE THE HEADERS BELOW AND PRESS ENTER:")
+        print("👇  PASTE THE HEADERS BELOW AND PRESS ENTER, THEN `CTRL+D`:")
         print("="*60 + "\n")
 
         try:

@@ -77,26 +77,46 @@ class MusicMigrator:
         choices = []
         playlist_map = {}
         
+        SELECT_ALL_OPT = ">> [ SELECT ALL ] <<"
+        choices.append(SELECT_ALL_OPT)
+        
+        all_real_playlists = []
+        
         for p in playlists:
             name = p['name']
             pid = p['id']
-            display_name = f"{name} ({p['tracks']['total']} tracks)"
+            total = p['tracks']['total'] if 'tracks' in p else 0
+            
+            display_name = f"{name} ({total} tracks)"
             choices.append(display_name)
-            playlist_map[display_name] = {'id': pid, 'name': name}
+            
+            playlist_data = {'id': pid, 'name': name}
+            playlist_map[display_name] = playlist_data
+            all_real_playlists.append(playlist_data)
 
-        if not choices:
+        if len(choices) <= 1:
             print("No playlists found!")
             return []
 
         questions = [
             inquirer.Checkbox('selected_playlists',
-                              message="Select playlists to migrate (Space to select, CTRL-D to confirm)",
+                              message="Select playlists (Space to select, Enter to confirm)",
                               choices=choices,
+                              carousel=False 
                               ),
         ]
         answers = inquirer.prompt(questions)
         
-        return [playlist_map[choice] for choice in answers['selected_playlists']]
+        if not answers or not answers['selected_playlists']:
+            return []
+
+        selected_keys = answers['selected_playlists']
+
+        if SELECT_ALL_OPT in selected_keys:
+            print(f"✅ 'Select All' chosen. Queueing {len(all_real_playlists)} playlists...")
+            return all_real_playlists
+
+        return [playlist_map[choice] for choice in selected_keys]
 
     def migrate_playlists(self, selected_playlists):
         """
