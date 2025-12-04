@@ -5,6 +5,7 @@ from ytmusicapi import YTMusic
 import inquirer
 from tqdm import tqdm
 import random
+from simple_term_menu import TerminalMenu
 
 class MusicMigrator:
     def __init__(self, spotify_client_id, spotify_client_secret):
@@ -68,56 +69,72 @@ class MusicMigrator:
 
     def select_spotify_playlists(self):
         """
-        Fetches user's Spotify playlists and asks them to select which ones to move.
+        Fetches user's Spotify playlists.
+        Asks to Migrate All or Select Manually.
         """
-        print("\nfetching your Spotify playlists...")
+        print("\nFetching your Spotify playlists...")
+        
         results = self.sp.current_user_playlists(limit=50)
         playlists = results['items']
         
-        choices = []
-        playlist_map = {}
-        
-        SELECT_ALL_OPT = ">> [ SELECT ALL ] <<"
-        choices.append(SELECT_ALL_OPT)
-        
+        while results['next']:
+            results = self.sp.next(results)
+            playlists.extend(results['items'])
+            
+        if not playlists:
+            print("❌ No playlists found!")
+            return []
+
         all_real_playlists = []
-        
+        menu_items = []
+
         for p in playlists:
             name = p['name']
             pid = p['id']
-            total = p['tracks']['total'] if 'tracks' in p else 0
+            total = p['tracks']['total'] if 'tracks' in p and p['tracks'] else 0
             
-            display_name = f"{name} ({total} tracks)"
-            choices.append(display_name)
+            display_str = f"{name} ({total} tracks)"
             
-            playlist_data = {'id': pid, 'name': name}
-            playlist_map[display_name] = playlist_data
-            all_real_playlists.append(playlist_data)
+            menu_items.append(display_str)
+            all_real_playlists.append({'id': pid, 'name': name})
 
-        if len(choices) <= 1:
-            print("No playlists found!")
-            return []
-
-        questions = [
-            inquirer.Checkbox('selected_playlists',
-                              message="Select playlists (Space to select, Enter to confirm)",
-                              choices=choices,
-                              carousel=False 
-                              ),
-        ]
-        answers = inquirer.prompt(questions)
+        print(f"\n✅ Found {len(all_real_playlists)} playlists.")
         
-        if not answers or not answers['selected_playlists']:
-            return []
-
-        selected_keys = answers['selected_playlists']
-
-        if SELECT_ALL_OPT in selected_keys:
-            print(f"✅ 'Select All' chosen. Queueing {len(all_real_playlists)} playlists...")
+        mode_questions = [
+            inquirer.List('mode',
+                message="How would you like to proceed?",
+                choices=[
+                    f'Select specific playlists manually',
+                    f'Migrate ALL `{len(all_real_playlists)}` playlists immediately',
+                ],
+            ),
+        ]
+        mode_answer = inquirer.prompt(mode_questions)
+        
+        if mode_answer['mode'].startswith('Migrate ALL'):
+            print(f"✅ 'Migrate All' chosen. Queueing {len(all_real_playlists)} playlists...")
             return all_real_playlists
 
-        return [playlist_map[choice] for choice in selected_keys]
+        terminal_menu = TerminalMenu(
+            menu_items,
+            title="Select playlists (Space to select, Enter to confirm)",
+            multi_select=True,
+            show_multi_select_hint=False,
+            multi_select_cursor="[X] ",
+            multi_select_cursor_style=("fg_green", "bold"),
+        )
+        
+        selected_indices = terminal_menu.show()
+        
+        if not selected_indices:
+            return []
 
+        selected_playlists = []
+        for index in selected_indices:
+            selected_playlists.append(all_real_playlists[index])
+
+        return selected_playlists
+    
     def migrate_playlists(self, selected_playlists):
         """
         The main logic to move songs.
@@ -126,8 +143,11 @@ class MusicMigrator:
             print("❌ You must login to YouTube first.")
             return
 
-        for playlist in selected_playlists:
-            print(f"\n🚀 Starting migration for: {playlist['name']}")
+        total_playlists = len(selected_playlists)
+
+        for index, playlist in enumerate(selected_playlists, start=1):
+            # Added counter to the print statement
+            print(f"\n🚀 Starting migration for: {playlist['name']} ({index}/{total_playlists})")
             
             yt_playlist_id = None
             create_attempts = 0
@@ -264,3 +284,5 @@ class MusicMigrator:
                 print(f"\nAll {len(video_ids)} tracks were found and migrated.\n")
 
             print("------------------------------------------------")
+            
+        print("\n✨ All playlist migrations completed! ✨\n")

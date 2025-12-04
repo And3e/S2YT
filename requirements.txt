@@ -3,3 +3,4 @@ ytmusicapi
 inquirer
 python-dotenv
 tqdm
+simple-term-menu
