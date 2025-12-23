@@ -335,21 +335,25 @@ class MusicMigrator:
 
             # 6. PUSH TO YOUTUBE
             if video_ids_to_add:
-                try:
-                    print(f"   📤 Adding {len(video_ids_to_add)} new tracks to YouTube...")
+                chunk_size = 50
+                print(f"   📤 Adding {len(video_ids_to_add)} tracks to YouTube (in batches of {chunk_size})...")
+                
+                for i in range(0, len(video_ids_to_add), chunk_size):
+                    chunk = video_ids_to_add[i:i + chunk_size]
+                    batch_num = (i // chunk_size) + 1
                     
-                    response = self.yt.add_playlist_items(yt_playlist_id, video_ids_to_add, duplicates=True)
-                    
-                    if response.get('status') == 'STATUS_SUCCEEDED' or 'actions' in response:
-                        print(f"   ✅ SUCCESS! Added {len(video_ids_to_add)} tracks.")
-                    else:
-                        print(f"   ⚠️ WARNING: API returned: {response}")
-                        
-                except Exception as e:
-                    print(f"   ❌ Error adding tracks: {e}")
+                    try:
+                        response = self.yt.add_playlist_items(yt_playlist_id, chunk, duplicates=True)
+                        if response.get('status') == 'STATUS_SUCCEEDED' or 'actions' in response:
+                            print(f"      ✅ Batch {batch_num}: Added {len(chunk)} tracks.")
+                        else:
+                            print(f"      ⚠️ Batch {batch_num} WARNING: {response}")
+                        time.sleep(1.5)
+                    except Exception as e:
+                        print(f"      ❌ Batch {batch_num} Failed: {e}")
             else:
-                print("   ℹ️  No new tracks to add (all found tracks were already in the playlist).")
-            
+                print("   ℹ️  No new tracks to add.")
+
             print("-" * 50)
 
             # 7. REPORT
